@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flappy Bird - Pink Theme</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #ffb6c1; /* Light pink */
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    canvas {
+      display: block;
+      border: 2px solid #fff;
+    }
+
+    #score {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      color: #fff;
+      font-size: 20px;
+    }
+
+    #startMessage {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 24px;
+      color: #fff;
+      background-color: rgba(0, 0, 0, 0.7);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      visibility: visible;
+    }
+  </style>
+</head>
+<body>
+  <div id="score">Score: 0</div>
+  <div id="startMessage">Press space bar to begin</div>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const scoreDisplay = document.getElementById("score");
+    const startMessage = document.getElementById("startMessage");
+
+    const canvasWidth = 400;
+    const canvasHeight = 600;
+    const gravity = 0.5;
+    const birdSize = 20;
+    const pipeWidth = 50;
+    const pipeGap = 120;
+
+    let bird = { x: 50, y: 300, velocity: 0 };
+    let pipes = [];
+    let score = 0;
+    let gameRunning = false;
+    let frameCount = 0;
+
+    function spawnPipe() {
+      const pipeHeight = Math.random() * (canvasHeight - pipeGap - 100) + 50;
+      pipes.push({
+        x: canvasWidth,
+        top: pipeHeight,
+        bottom: canvasHeight - pipeHeight - pipeGap,
+      });
+    }
+
+    function update() {
+      if (!gameRunning) return;
+
+      bird.velocity += gravity;
+      bird.y += bird.velocity;
+
+      if (bird.y + birdSize / 2 > canvasHeight || bird.y - birdSize / 2 < 0) {
+        endGame();
+      }
+
+      for (let i = 0; i < pipes.length; i++) {
+        pipes[i].x -= 2;
+
+        if (
+          bird.x + birdSize / 2 > pipes[i].x &&
+          bird.x - birdSize / 2 < pipes[i].x + pipeWidth &&
+          (bird.y - birdSize / 2 < pipes[i].top ||
+            bird.y + birdSize / 2 > canvasHeight - pipes[i].bottom)
+        ) {
+          endGame();
+        }
+
+        if (pipes[i].x + pipeWidth < bird.x && !pipes[i].scored) {
+          score++;
+          scoreDisplay.textContent = `Score: ${score}`;
+          pipes[i].scored = true;
+        }
+      }
+
+      pipes = pipes.filter(pipe => pipe.x + pipeWidth > 0);
+
+      if (frameCount % 90 === 0) {
+        spawnPipe();
+      }
+
+      frameCount++;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+      ctx.fillStyle = "#ff69b4"; // Hot pink
+      ctx.beginPath();
+      ctx.arc(bird.x, bird.y, birdSize / 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#d81b60"; // Dark pink
+      for (let i = 0; i < pipes.length; i++) {
+        ctx.fillRect(pipes[i].x, 0, pipeWidth, pipes[i].top);
+        ctx.fillRect(
+          pipes[i].x,
+          canvasHeight - pipes[i].bottom,
+          pipeWidth,
+          pipes[i].bottom
+        );
+      }
+    }
+
+    function endGame() {
+      gameRunning = false;
+      startMessage.style.visibility = "visible";
+      startMessage.textContent = `Game Over! Final Score: ${score}. Press space bar to restart.`;
+    }
+
+    function resetGame() {
+      bird = { x: 50, y: 300, velocity: 0 };
+      pipes = [];
+      score = 0;
+      scoreDisplay.textContent = "Score: 0";
+      frameCount = 0;
+      gameRunning = true;
+      startMessage.style.visibility = "hidden";
+    }
+
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === " ") {
+        if (!gameRunning) {
+          resetGame();
+        }
+        bird.velocity = -8;
+      }
+    });
+
+    gameLoop();
+  </script>
+
+<a href="../index.html">Go to Professional Page</a>
+
+<a href="html/scratch">Go to Scratch Page</a>
+
+</body>
+</html>
